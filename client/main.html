@@ -1,0 +1,695 @@
+<head>
+	<meta charset=utf-8>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<!-- 是否删除默認的蘋果工具欄和菜單欄 -->
+	<meta name="format-detection" content="telephone=no, email=no" />
+	<!-- iphone會把一串數字識別為電話號碼 -->
+	<!-- 點擊的時候會提示是否呼叫，屏幕這功能則把telephone设置为no -->
+	<meta name="HandheldFriendly" content="True">
+	<!-- 針對手持設備優化，主要是針對一些不識別viewport瀏覽器，比如黑莓 -->
+	<script type="text/javascript">
+		var H_window = 0;
+	</script>
+</head>
+
+<!-- 骨架 -->
+	<template name="MainTmp">
+		{{AutoLoginOut check}}
+		<div class="container-fluid my-navbar" style="width: 100%;position: fixed;top: 0;z-index: 10;">
+	        <div class="row">
+
+	        	{{#if BackGotFoodDetail title}}
+	        		<a href="{{pathFor route='post.gotfood'}}" class="fa fa-arrow-left" aria-hidden="true" style="z-index: 999;float: left;color: #FFFFFF;font-size: 22px;position: absolute;top: 13px;left: 13px;"></a>
+	        	{{/if}}
+	        	
+	        	{{#if BackVing title}}
+	        		<a href="{{pathFor route='post.ving'}}" class="fa fa-arrow-left" aria-hidden="true" style="z-index: 999;float: left;color: #FFFFFF;font-size: 22px;position: absolute;top: 13px;left: 13px;"></a>
+	        	{{/if}}
+
+	        	{{#if BackNotAccepted title}}
+	        		<a href="{{pathFor route='post.notaccepted'}}" class="fa fa-arrow-left" aria-hidden="true" style="z-index: 999;float: left;color: #FFFFFF;font-size: 22px;position: absolute;top: 13px;left: 13px;"></a>
+	        	{{/if}}
+
+	        	{{#if BackMainTmp title}}
+	        		<a href="{{pathFor route='post.MainTmp'}}" class="fa fa-arrow-left" aria-hidden="true" style="z-index: 999;float: left;color: #FFFFFF;font-size: 22px;position: absolute;top: 13px;left: 13px;"></a>
+	        	{{/if}}
+
+	        	{{#if BackSurplus title}}
+	        		<a href="{{pathFor route='post.surplus'}}" class="fa fa-arrow-left" aria-hidden="true" style="z-index: 999;float: left;color: #FFFFFF;font-size: 22px;position: absolute;top: 13px;left: 13px;"></a>
+	        	{{/if}}
+
+	        	<div class="row">
+	        		<div class="col-xs-12" style="text-align: center;z-index: 99;">
+		                <h4 class="nav-text">{{title}}</h4>
+		            </div>
+	        	</div>
+
+	        </div>
+    	</div>
+	    {{#if currentUser}}
+			{{> yield "plugin"}}
+			{{> yield "ftplugin"}}
+		{{else}}
+			<!-- 註冊 -->
+			{{#if OneBar check}}
+				{{> yield "plugin"}}
+			{{/if}}
+
+			<!-- 登入畫面 -->
+			{{#if Login check}}
+				{{> login}}
+			{{/if}}
+		{{/if}}
+	</template>
+
+<!-- 日報表 -->
+	<template name="DailyReport">
+		<div style="height: 50px;"></div>
+		{{#if Template.subscriptionsReady}}
+			<div id="DailyReportBody" class="row" style="overflow-y: scroll;">
+		        <div class="col-md-12" style="margin-bottom: 20px;">
+			        {{#each DailyReportList}}
+				        <div class="col-md-4" style="border-right: 1px solid #dddddd;margin-top:20px;height: 80px;">
+				        	<p style="padding-bottom: 15px;text-align: center;">2018-06-23</p>
+				        	<div class="col-xs-12">
+				        		<button data-value="0" class="BtnShoppingMoney btn btn-block btn-primary">統計</button>
+				        	</div>
+				        	<input type="hidden" name="DailyReport0" value="4">
+				        </div>
+			        {{/each}}
+				</div>
+		    </div>
+		    <script type="text/javascript">
+        		H_window = $(window).height();
+				$("#DailyReportBody").css({'max-height': (H_window - 50) }).scrollTop(0);
+        	</script>
+	    {{/if}}
+	</template>
+
+<!-- 購物金 -->
+	<template name="ShoppingMoney">
+		<div style="height: 50px;"></div>
+		{{#if Template.subscriptionsReady}}
+			<div id="ShoppingMoneyBody" class="row" style="overflow-y: scroll;">
+		        <div class="col-md-12" style="margin-bottom: 20px;">
+			        {{#each ShoppingMoneyList}}
+				        <div class="col-md-4" style="border-right: 1px solid #dddddd;margin-top:20px;height: 80px;">
+				        	<p style="padding-bottom: 15px;text-align: center;">{{tpyetoken}}, {{mail}}, {{phone}}</p>
+				        	<div class="col-xs-12">
+				        		<button data-value="{{index}}" class="BtnShoppingMoney btn btn-block btn-danger">確定給付購物金</button>
+				        	</div>
+				        	<input type="hidden" name="Usermail{{index}}" value="{{mail}}">
+				        	<input type="hidden" name="UserId{{index}}" value="{{id}}">
+				        	<input type="hidden" name="Usertoken{{index}}" value="{{token}}">
+				        </div>
+			        {{/each}}
+				</div>
+		    </div>
+		    <script type="text/javascript">
+        		H_window = $(window).height();
+				$("#ShoppingMoneyBody").css({'max-height': (H_window - 50) }).scrollTop(0);
+        	</script>
+	    {{/if}}
+	</template>
+
+
+<!-- 結帳去 -->
+	<template name="GotFood">
+		<div style="height: 50px;"></div>
+		{{#if Template.subscriptionsReady}}
+			<div id="GotFoodBody" class="row" style="overflow-y: scroll;">
+		        <div class="col-md-12" style="margin-bottom: 20px;">
+			        {{#each GotFoodList}}
+				        <div class="col-md-4" style="border-right: 1px solid #dddddd;margin-top:20px;height: 110px;">
+				        	<!-- <p style="padding-bottom: 15px;text-align: center;">教職員/學生, 2018-06-13 13:12</p>
+				        	<p style="padding-bottom: 15px;text-align: center;">1, 1046036, 0972153032, NT$3000</p> -->
+				        	<p style="padding-bottom: 15px;text-align: center;">{{name}}, {{date}}</p>
+				        	<p style="padding-bottom: 15px;text-align: center;">{{tokentype}}, {{email}}, {{phone}}, NT${{money}}</p>
+				        	<div class="col-xs-12">
+				        		<a href="{{pathFor route='post.gotfooddetail' data=getPost query='id='}}{{orderid}}" class="btn btn-block btn-danger">
+				        			<p style="color: #ffffff;">結帳去</p>
+				        		</a>
+				        	</div>
+				        </div>
+			        {{/each}}
+				</div>
+		    </div>
+		    <script type="text/javascript">
+        		H_window = $(window).height();
+				$("#GotFoodBody").css({'max-height': (H_window - 50) }).scrollTop(0);
+        	</script>
+	    {{/if}}
+	</template>
+
+<!-- 結帳中 -->
+	<template name="GotFoodDetail">
+		<div style="height: 50px;"></div>
+		{{#if Template.subscriptionsReady}}
+			<div  class="row">
+				<input type="hidden" name="GotFoodOrderId" value="{{orderid}}">
+		        <div id="GotFoodDetailBody" class="col-md-6" style="overflow-y: scroll;margin-bottom: 20px;padding-right: 0px;border-right: 1px solid #dddddd;">
+		        	<div class="container" style="padding: 20px;">
+		        		{{#each GotFoodList orderid}}
+		        		<div class="col-12">
+						    <div class="card">
+						    	<div class="card-header">{{head}}</div>
+						        {{#if IFSingleOrDouble SingleOrDouble}}
+						            <div class="card-body" style="padding: 15px 0px 15px 20px;line-height: 25px;letter-spacing: 2px;">
+					                	<p class="card-text">{{catena}}</p>
+					                	<p class="card-text">{{name}}</p>
+					                    <p class="card-text">{{sauce}}</p>
+					                	<p class="card-text">{{money}} 元</p>
+						            </div>
+						    	{{else}}
+					        		<div class="card-body" style="padding: 15px 0px 15px 20px;line-height: 25px;letter-spacing: 2px;">
+					                    <p class="card-text">{{meal}}</p>
+					                    <p class="card-text">{{first}}</p>
+					                    <p class="card-text">{{second}}</p>
+					                    <p class="card-text">{{drink}}</p>
+					                    <p class="card-text">{{money}} 元</p>
+					                </div>
+						    	{{/if}}
+						    </div>
+						</div>
+						{{/each}}
+		            </div>
+		        </div>
+		        <div class="col-md-6" style="margin-bottom: 20px;">
+		        	<div class="container" style="margin-top: 10%;">
+			        	<!-- 訂購時間 -->
+			        	<div class="col-md-3" style="padding: 10px;margin-top: 10px;">
+							<p style="font-size: 20px;">訂購時間:</p>
+						</div>
+						<div class="col-md-9" style="padding: 10px;margin-top: 10px;margin-bottom: 20px;">
+							<p style="font-size: 20px;">{{GotFoodDate}}</p>
+						</div>
+						<!-- 帳號身份 -->
+						<div class="col-md-3" style="padding: 10px;">
+							<p style="font-size: 20px;">帳號身份:</p>
+						</div>
+						<div class="col-md-9" style="padding: 10px;margin-bottom: 20px;">
+							<p style="font-size: 20px;">{{GotFoodIdentity}}</p>
+						</div>
+						<!-- 訂購帳號 -->
+						<div class="col-md-3" style="padding: 10px;">
+							<p style="font-size: 20px;">訂購帳號:</p>
+						</div>
+						<div class="col-md-9" style="padding: 10px;margin-bottom: 20px;">
+							<p style="font-size: 20px;">{{GotFoodEmail}}</p>
+						</div>
+						<!-- 用戶手機 -->
+						<div class="col-md-3" style="padding: 10px;">
+							<p style="font-size: 20px;">用戶手機:</p>
+						</div>
+						<div class="col-md-9" style="padding: 10px;margin-bottom: 20px;">
+							<p style="font-size: 20px;">{{GotFoodPhone}}</p>
+						</div>
+						<!-- 訂單價格 -->
+						<div class="col-md-3" style="padding: 10px;">
+							<p style="font-size: 20px;">訂單價格:</p>
+						</div>
+						<div class="col-md-9" style="padding: 10px;margin-bottom: 20px;">
+							<p style="font-size: 20px;">NT${{GotFoodMoney}}</p>
+						</div>
+						<!-- 交支付金 -->
+						<div class="col-md-3" style="padding: 10px;">
+							<p style="font-size: 20px;">交支付金:</p>
+						</div>
+						<div class="col-md-4" style="padding-right: 0px;">
+							<input name="paymoney" type="number" min="0" inputmode="numeric" pattern="[0-9]*" placeholder="輸入交付金" class="form-control">
+						</div>
+						<div class="col-md-3" style="padding: 10px;text-align: center;">
+							<p style="font-size: 20px;">找零金:</p>
+						</div>
+						<div class="col-md-2" style="padding: 10px;margin-bottom: 20px;">
+							<p style="font-size: 20px;">{{ForCustomer}}</p>
+						</div>
+						<!-- 正負狀態 -->
+						<div class="col-md-3" style="padding: 10px;">
+							<p style="font-size: 20px;">正負狀態:</p>
+						</div>
+						<div class="col-md-9" style="margin-bottom: 20px;padding: 10px;">
+							<div style="text-align: center;background-color: {{ColorType}};color: white;height: 20px;"></div>
+						</div>
+						<!-- btn -->
+						<div class="col-md-6" style="padding: 10px;">
+							<a href="{{pathFor route='post.gotfood'}}" class="btn btn-block btn-warning">取消</a>
+						</div>
+						<div class="col-md-6" style="padding: 10px;">
+							<button name="BtnDeal" class="btn btn-block btn-primary">確定交易</button>
+						</div>
+						<input type="hidden" name="GotFoodDetailtoken" value="{{GotFoodtoken}}">
+					</div>
+		        </div>
+		    </div>
+		    <script type="text/javascript">
+        		H_window = $(window).height();
+				$("#GotFoodDetailBody").css({
+					'height': (H_window - 70)
+				}).scrollTop(0);
+        	</script>
+	    {{/if}}
+	</template>
+
+<!-- 烹飪中 -->
+	<template name="Ving">
+		<div style="height: 50px;"></div>
+		{{#if Template.subscriptionsReady}}
+			<div id="VingBody" class="row" style="overflow-y: scroll;">
+		        <div class="col-md-12" style="margin-bottom: 20px;">
+			        {{#each VingList}}
+				        <div class="col-md-4" style="border-right: 1px solid #dddddd;margin-top:20px;height: 110px;">
+				        	<!-- <p style="padding-bottom: 15px;text-align: center;">教職員/學生, 2018-06-13 13:12</p>
+				        	<p style="padding-bottom: 15px;text-align: center;">1, 1046036, 0972153032, NT$3000</p> -->
+				        	<p style="padding-bottom: 15px;text-align: center;">{{name}}, {{date}}</p>
+				        	<p style="padding-bottom: 15px;text-align: center;">{{tokentype}}, {{email}}, {{phone}}, NT${{money}}</p>
+				        	<div class="col-xs-4">
+				        		<a href="{{pathFor route='post.vingdetail' data=getPost query='id='}}{{objid}}" class="btn btn-block btn-info">
+				        			<p style="color: #ffffff;">修改</p>
+				        		</a>
+				        	</div>
+				        	<div class="col-xs-4">
+				        		<button data-value="{{index}}" class="BtnRmVing btn btn-block btn-danger">取消訂單</button>
+				        	</div>
+				        	<div class="col-md-4" style="padding-right: 0px;">
+				        		<button data-value="{{index}}" class="BtnVing btn btn-block btn-primary">進入下一階段</button>
+				        	</div>
+				        	<input type="hidden" name="Vinguserid{{index}}" value="{{objid}}">
+				        	<input type="hidden" name="VingOrderid{{index}}" value="{{orderid}}">
+				        	<input type="hidden" name="Vingtoken{{index}}" value="{{token}}">
+				        </div>
+			        {{/each}}
+				</div>
+		    </div>
+		    <script type="text/javascript">
+        		H_window = $(window).height();
+				$("#VingBody").css({'max-height': (H_window - 50) }).scrollTop(0);
+        	</script>
+	    {{/if}}
+	</template>
+
+<!-- 烹飪中修正訂單 -->
+	<template name="VingDetail">
+		<div style="height: 50px;"></div>
+		{{#if Template.subscriptionsReady}}
+			<div id="VingDetailBody" class="row" style="overflow-y: scroll;">
+		        <div class="col-md-12" style="margin-bottom: 20px;">
+			        
+				</div>
+		    </div>
+		    <script type="text/javascript">
+        		H_window = $(window).height();
+				$("#VingDetailBody").css({'max-height': (H_window - 50) }).scrollTop(0);
+        	</script>
+	    {{/if}}
+	</template>
+
+<!-- 尚未受理 -->
+	<template name="NotAccepted">
+		<div style="height: 50px;"></div>
+		{{#if Template.subscriptionsReady}}
+			<div id="NotAcceptedBody" class="row" style="overflow-y: scroll;">
+		        <div class="col-md-12" style="margin-bottom: 20px;">
+			        {{#each NotAcceptedList}}
+				        <div class="col-md-4" style="border-right: 1px solid #dddddd;margin-top:20px;height: 110px;">
+				        	<!--
+					        	<p style="padding-bottom: 15px;text-align: center;">教職員/學生, 2018-06-13 13:12</p>
+					        	<p style="padding-bottom: 15px;text-align: center;">1, 1046036, 0972153032, NT$3000</p>
+					        -->
+				        	<p style="padding-bottom: 15px;text-align: center;">{{name}}, {{date}}</p>
+				        	<p style="padding-bottom: 15px;text-align: center;">{{tokentype}}, {{email}}, {{phone}}, NT${{money}}</p>
+				        	<div class="col-xs-4">
+				        		<a href="{{pathFor route='post.NotAcceptedetail' data=getPost query='id='}}{{objid}}" class="btn btn-block btn-info">
+				        			<p style="color: #ffffff;">修改</p>
+				        		</a>
+				        		<!-- <button data-value="{{index}}" class="BtnMdyNotAccepted btn btn-block btn-info">修改</button> -->
+				        	</div>
+				        	<div class="col-xs-4">
+				        		<button data-value="{{index}}" class="BtnRmMove btn btn-block btn-danger">取消訂單</button>
+				        	</div>
+				        	<div class="col-xs-4" style="padding-right: 0px;">
+				        		<button data-value="{{index}}" class="BtnNotAccepted btn btn-block btn-primary">進入下一階段</button>
+				        	</div>
+				        	<input type="hidden" name="NotAccepteduserid{{index}}" value="{{objid}}">
+				        	<input type="hidden" name="NotAcceptedOrderid{{index}}" value="{{orderid}}">
+				        	<input type="hidden" name="NotAcceptedtoken{{index}}" value="{{token}}">
+				        </div>
+			        {{/each}}
+				</div>
+		    </div>
+		    <script type="text/javascript">
+        		H_window = $(window).height();
+				$("#NotAcceptedBody").css({'max-height': (H_window - 50) }).scrollTop(0);
+        	</script>
+	    {{/if}}
+	</template>
+
+<!-- 尚未受理之修正訂單 -->
+	<template name="NotAccepteDetail">
+		<div style="height: 50px;"></div>
+		{{#if Template.subscriptionsReady}}
+			<div id="NotAccepteDetailBody" class="row" style="overflow-y: scroll;">
+		        
+		    </div>
+		    <script type="text/javascript">
+        		H_window = $(window).height();
+				$("#NotAccepteDetail").css({'max-height': (H_window - 50) }).scrollTop(0);
+        	</script>
+	    {{/if}}
+	</template>
+	
+<!-- 口味 -->
+	<template name="Taste">
+		<div style="height: 50px;"></div>
+		{{#if Template.subscriptionsReady}}
+			<div id="TasteBody" class="row" style="overflow-y: scroll;">
+		        <div class="col-md-12" style="margin-bottom: 50px;">
+			        {{#each TasteList}}
+				        <div class="col-md-3" style="margin-top:20px;height: 100px;">
+				        	<p style="padding: 15px;text-align: center;">{{index}}.{{name}}</p>
+				        	<div class="col-xs-12">
+				        		<button data-value="{{index}}" class="BtnTaste btn btn-block btn-{{Class}}">{{Type}}</button>
+				        		<input type="hidden" name="tasteid{{index}}" value="{{objid}}">
+				        		<input type="hidden" name="tastetype{{index}}" value="{{Status}}">
+				        		<input type="hidden" name="tastename{{index}}" value="{{name}}">
+				        	</div>
+				        </div>
+			        {{/each}}
+				</div>
+		    </div>
+		    <script type="text/javascript">
+        		H_window = $(window).height();
+				$("#TasteBody").css({'max-height': (H_window - 50) }).scrollTop(0);
+        	</script>
+	    {{/if}}
+	</template>
+
+<!-- 食物 -->
+	<template name="Surplus">
+		<div style="height: 50px;"></div>
+		{{#if Template.subscriptionsReady}}
+			<div id="SurplusBody" class="row" style="overflow-y: scroll;">
+				<div class="col-md-12" style="margin-bottom: 30px;margin-top: 30px;">
+					{{#each Surplus in SurplusList}}
+			            <div class="col-md-4" style="height: 80px;margin-top: 10px;border-right: 1px solid #dddddd;margin-bottom: 10px;">
+				            <div style="background-color: white;height: 80px;padding: 5px;">
+				            	<div class="col-md-12" style="margin: 5px 5px 10px 5px;">
+				            		<!-- <p>冰島魚排義大利麵</p> -->
+				            			<p>{{Surplus.name}} --- {{Surplus.money}}元</p>
+			            		</div>
+			            		<div>
+		            			<!-- 口味顯示 -->
+				            		<!-- <div class="col-md-4" style="padding-left: 5px;padding-right: 0px;"> -->
+				            		<div class="col-md-4">
+			            				<button data-value="{{Surplus.index}}" class="btn btn-block" type="button" data-toggle="modal" data-target="#sauce{{Surplus.index}}">口味</button>
+				            		</div> 
+			            		<!-- 修改口味 -->
+				            		<!-- 
+					            		<div class="col-md-3" style="padding-left: 0px;padding-right: 0px;">
+					            				<a href="{{pathFor route='post.surplusdetail' data=getPost query='id='}}{{Surplus.objid}}" class="btn btn-block" style="color: ##47476b;"><p>修改口味</p></a>	
+					            		</div>
+					            	-->
+			            		<!-- 增加食物份量 -->
+				            		<div class="col-md-4" style="padding-left: 0px;padding-right: 0px;">
+				            			<button data-value="{{Surplus.index}}" class="BtnSurplus btn btn-block" type="button">增加食物量</button>
+				            		</div> 
+			            		<!-- 剩餘 -->
+					            	<div class="col-md-4" style="padding-left: 0px;padding-right: 0px;margin-top: 10px;text-align: center;">
+				            			<p>剩餘: {{Surplus.count}}</p>
+				            		</div>
+			            		</div>
+				            </div>
+				            <!-- Jump Modl -->
+				            <div class="modal fade" id="sauce{{Surplus.index}}" tabindex="-1" role="dialog">
+							  <div class="modal-dialog" role="document">
+							    <div class="modal-content">
+							      <div class="modal-header">
+							        <h4 class="modal-title" style="margin-left: 43%;">顯示口味</h4>
+							      </div>
+							      <div class="modal-body" style="overflow-y: scroll;height: 280px;text-align: center;">
+							      	{{#each SurplusSauce in SurplusSauceList Surplus.Sauce}}
+							      		<p style="line-height: 30px;letter-spacing: 10px;font-size: 20px;">{{SurplusSauce.name}}</p>
+							      	{{/each}}
+							      </div>
+							    </div>
+							  </div>
+							</div>
+			            	<input type="hidden" name="surplusobjid{{Surplus.index}}" value="{{Surplus.objid}}">
+			            	<input type="hidden" name="surplusname{{Surplus.index}}" value="{{Surplus.name}}">
+		            	</div>
+					{{/each}}
+			    </div>
+		    </div>
+		    <script type="text/javascript">
+		    	H_window = $(window).height();
+				$("#SurplusBody").css({'max-height': (H_window - 50) }).scrollTop(0);
+		    </script>
+	    {{/if}}
+	</template>
+
+<!-- 食物口味修改 -->
+	<template name="SurplusDetail">
+		<div style="height: 50px;"></div>
+		{{#if Template.subscriptionsReady}}
+			<div id="SurplusDetailBody" class="row" style="overflow-y: scroll;">
+				<div class="container" style="max-width: 80.25rem;margin-bottom: 30px;margin-top: 30px;">
+					<div class="col-md-12" style="text-align: center;margin-bottom: 20px;">
+						<span style="font-size: 25px;">冰島魚排義大利麵</span>
+					</div>
+					{{#each list in SurplusDetailList}}
+						<div class="col-md-3" style="margin-bottom: 20px">
+						    <div class="input-group">
+						    	<span class="input-group-addon">
+						        	<input style="width: 20px;height: 20px;" type="checkbox" value="{{list.sauceid}}" name="sauce">
+						    	</span>
+								<input value="{{list.saucename}}" type="text" class="form-control" disabled>
+						    </div>
+						</div>
+					{{/each}}
+					<div class="col-md-6"></div>
+					<div class="col-md-3" style="margin-bottom: 20px">
+						<button class="btn btn-block btn-warning">取消</button>
+					</div>
+					<div class="col-md-3" style="margin-bottom: 20px">
+			            <button class="btn btn-block btn-primary">修改</button>
+					</div>	
+			    </div>
+		    </div>
+		    <script type="text/javascript">
+		    	H_window = $(window).height();
+				$("#SurplusDetailBody").css({'max-height': (H_window - 50) }).scrollTop(0);
+		    </script>
+	    {{/if}}
+	</template>
+
+<!-- 商家資訊 -->
+	<template name="Info">
+		<div style="height: 50px;"></div>
+		{{#if Template.subscriptionsReady}}
+			<div class="container" style="padding-bottom: 20px;">
+		        {{#each InfoEach}}
+					<div class="col-md-12" style="margin-top: 10px;padding: 10px 0px 10px 0px;">
+						<div class="col-md-7" style="padding: 0px;">
+							<p style="font-size: 25px;margin-top: 10px;">手機: {{phone}}</p>
+						</div>
+						<div class="col-md-5" style="padding-right: 0px;">
+							<button style="font-size: 20px;" name="btnphone" class="btn btn-block btn-primary">修改</button>
+						</div>
+			        </div>
+
+			        <div class="col-md-12" style="padding: 10px 0px 10px 0px;">
+						<div class="col-md-7" style="padding: 0px;">
+							<p style="font-size: 25px;margin-top: 10px;">開店: {{open}}</p>
+						</div>
+						<div class="col-md-5" style="padding-right: 0px;">
+							<button style="font-size: 20px;" name="btnopen" class="btn btn-block btn-primary">修改</button>
+						</div>
+			        </div>
+
+			        <div class="col-md-12" style="padding: 10px 0px 10px 0px;">
+						<div class="col-md-7" style="padding: 0px;">
+							<p style="font-size: 25px;margin-top: 10px;">閉店: {{close}}</p>
+						</div>
+						<div class="col-md-5" style="padding-right: 0px;">
+							<button style="font-size: 20px;" name="btnclose" class="btn btn-block btn-primary">修改</button>
+						</div>
+			        </div>
+
+			        <div class="col-md-12" style="padding: 10px 0px 10px 0px;">
+						<div class="col-md-7" style="padding: 0px;">
+							<p style="font-size: 25px;margin-top: 10px;">狀態: {{shopstatus}}</p>
+						</div>
+						<div class="col-md-5" style="padding-right: 0px;">
+							<button style="font-size: 20px;" name="btnstatus" class="btn btn-block btn-{{btnclass}}">{{name}}</button>
+							<input type="hidden" name="InfoStatus" value="{{status}}">
+						</div>
+			        </div>
+			    {{/each}}
+			    <div class="col-md-12" style="padding: 10px;">
+			    	<a target="_bank" href="https://jnadtech.com/1798/Service/AutoScript.php" class="btn btn-block btn-primary">重置時間</a>
+			    </div>
+		    </div>
+	    {{/if}}
+	</template>
+
+<!-- 商家 -->
+	<template name="shopplugin">
+		<div style="height: 50px;"></div>
+		{{#if Template.subscriptionsReady}}
+			<div class="container" style="padding-bottom: 20px;">
+		        <div class="row">
+					<div class="col-xs-6" style="margin-top: 40px;">
+						<a href="{{pathFor route='post.info'}}" style="height: 80px;" class="btn btn-block btn-primary">
+							<p style="color: white;margin-top: 20px;">商家資訊</p>
+						</a>
+					</div>
+
+					<div class="col-xs-6" style="margin-top: 40px;">
+						<a href="{{pathFor route='post.notaccepted'}}" style="height: 80px;" class="btn btn-block btn-primary">
+							<p style="color: white;margin-top: 20px;">尚未受理</p>
+						</a>
+					</div>
+					
+					<div class="col-xs-6" style="margin-top: 40px;">
+						<a href="{{pathFor route='post.taste'}}" style="height: 80px;" class="btn btn-block btn-primary">
+							<p style="color: white;margin-top: 20px;">口味 開/關</p>
+						</a>
+					</div>
+
+					<div class="col-xs-6" style="margin-top: 40px;">
+						<a href="{{pathFor route='post.ving'}}" style="height: 80px;" class="btn btn-block btn-primary">
+							<p style="color: white;margin-top: 20px;">烹飪中
+							</p>
+						</a>
+					</div>
+					
+					<div class="col-xs-6" style="margin-top: 40px;">
+						<a href="{{pathFor route='post.surplus'}}" style="height: 80px;" class="btn btn-block btn-primary">
+							<p style="color: white;margin-top: 20px;">食物</p>
+						</a>
+					</div>
+
+					<div class="col-xs-6" style="margin-top: 40px;">
+						<a href="{{pathFor route='post.gotfood'}}" style="height: 80px;" class="btn btn-block btn-primary">
+							<p style="color: white;margin-top: 20px;">待取餐
+							</p>
+						</a>
+					</div>
+
+					<div class="col-xs-6" style="margin-top: 40px;">
+						<a href="{{pathFor route='post.shoppingmoney'}}" style="height: 80px;" class="btn btn-block btn-primary">
+							<p style="color: white;margin-top: 20px;">購物金</p>
+						</a>
+					</div>
+
+					<div class="col-xs-6" style="margin-top: 40px;">
+						<a href="{{pathFor route='post.dailyreport'}}" style="height: 80px;" class="btn btn-block btn-primary">
+							<p style="color: white;margin-top: 20px;">日報表</p>
+						</a>
+					</div>
+		        </div>
+		    </div>
+	    {{/if}}
+	</template>
+
+<!-- 登入 -->
+	<template name="login">
+		<div class="container">
+	        <div class="row"> 
+	            <div class="col-xs-12" style="text-align: center;margin-top: 200px;">
+					<p style="margin-bottom: 10%;" class="title-text">登入</p>
+					<form>
+						<input name="userphone" type="number" min="0" inputmode="numeric" pattern="[0-9]*" placeholder="手機號碼 ( 09xx )" style="margin-bottom: 2%;" class="form-control">
+						<input name="userpwd" type="password" class="form-control" placeholder="密碼" style="margin-bottom: 2%;">
+						<button type="submit" class="btn btn-block btn-success" style="margin-bottom: 5px;font-size: 20px;" id="btn_login">登入</button>
+					</form>
+					<!--
+						<button type="button" class="btn btn-block btn-secondary" style="margin-bottom: 5px;font-size: 20px;" id="btn_register">註冊</button>
+					-->
+	            </div>
+	        </div>
+	    </div>
+	</template>
+
+<!-- 註冊-->
+	<template name="RegisterOfPhone">
+		<div style="height: 50px;"></div>
+		<div id="RegisterOfPhoneBody" class="container">
+			<div class="col-xs-12" style="text-align: center;margin-top: 20%;">
+				<p style="color: red;">註冊</p>
+			</div>
+			<form>
+				<div class="col-xs-12" style="margin-top: 5%;">
+					<input name="shopname" type="text" class="form-control" placeholder="商家名稱">
+				</div>
+
+				<div class="col-xs-12" style="margin-top: 3%;">
+					<select class="form-control b4-form" name=SchoolSelect>
+						<option selected disabled>--選擇學校--</option>
+						{{> TempSchool}}
+					</select>
+				</div>
+
+				<div class="col-xs-12" style="margin-top: 3%;">
+					<input name="phone" type="number" min="0" inputmode="numeric" pattern="[0-9]*" placeholder="手機號碼 ( 09xx )" class="form-control">
+				</div>
+				
+				<div class="col-xs-12" style="margin-top: 3%;">
+					<input name="pwd" type="text" class="form-control" placeholder="密碼">
+				</div>
+
+				<div class="col-xs-6" style="margin-top: 3%;">
+					<input name="opentime" type="number" min="0" inputmode="numeric" pattern="[0-9]*" placeholder="開店時間" class="form-control">
+				</div>
+
+				<div class="col-xs-6" style="margin-top: 3%;">
+					<input name="closetime" type="number" min="0" inputmode="numeric" pattern="[0-9]*" placeholder="關店時間" class="form-control">
+				</div>
+				<div class="col-xs-12" style="margin-top: 3%;">
+					<button type="submit" class="btn btn-block btn-primary">註冊</button>
+				</div>
+				<div class="col-xs-12" style="margin-top: 3%;">
+					<a style="color: blue;text-align: center;font-size: 15px;" href="{{pathFor route='post.login'}}">回首頁</a>
+				</div>
+			</form>
+		</div>
+		<script type="text/javascript">
+			vBody = $('body').height();
+       		$("#RegisterOfPhoneBody").css({"height":vBody-50});
+		</script>
+	</template>
+
+<!-- 選擇學校 -->
+	<template name="TempSchool">
+		{{#each City}}
+			<option disabled>{{title}}</option>
+			{{#each School id}}
+				<option value="{{zip}}">{{title}}</option>
+			{{/each}}
+		{{/each}}
+	</template>
+
+<!-- 會員快捷鍵 -->
+	<template name="accountplugin">
+		<div class="container-fluid my-navbar" style="position: fixed;width: 100%;bottom: 0px;z-index: 999;height: 50px;">
+		    <div class="row function-row">
+		        
+		        <div class="col-xs-12">
+			        <a style="margin-top: -4px;font-size: 30px;" class="accountplugin_a fa fa-home" aria-hidden="true" href="{{pathFor route='post.MainTmp'}}">
+			        	<p style="color: white;font-size: 12px;">首頁</p>
+			        </a>
+		        </div>
+		        
+		    </div>
+		</div>
+		<style type="text/css">
+			.accountplugin_a, .accountplugin_a:hover{
+				color: white;
+				text-decoration: none;
+				font-size: 12px;
+			}
+		</style>
+	</template>
+
+<body></body>
