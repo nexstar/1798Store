@@ -19,6 +19,10 @@
 		<div class="container-fluid my-navbar" style="width: 100%;position: fixed;top: 0;z-index: 10;">
 	        <div class="row">
 
+	        	{{#if BackDailyReportDetail title}}
+	        		<a href="{{pathFor route='post.dailyreport'}}" class="fa fa-arrow-left" aria-hidden="true" style="z-index: 999;float: left;color: #FFFFFF;font-size: 22px;position: absolute;top: 13px;left: 13px;"></a>
+	        	{{/if}}
+
 	        	{{#if BackGotFoodDetail title}}
 	        		<a href="{{pathFor route='post.gotfood'}}" class="fa fa-arrow-left" aria-hidden="true" style="z-index: 999;float: left;color: #FFFFFF;font-size: 22px;position: absolute;top: 13px;left: 13px;"></a>
 	        	{{/if}}
@@ -28,7 +32,7 @@
 	        	{{/if}}
 
 	        	{{#if BackNotAccepted title}}
-	        		<a href="{{pathFor route='post.notaccepted'}}" class="fa fa-arrow-left" aria-hidden="true" style="z-index: 999;float: left;color: #FFFFFF;font-size: 22px;position: absolute;top: 13px;left: 13px;"></a>
+	        		<a href="/{{_path}}" class="fa fa-arrow-left" aria-hidden="true" style="z-index: 999;float: left;color: #FFFFFF;font-size: 22px;position: absolute;top: 13px;left: 13px;"></a>
 	        	{{/if}}
 
 	        	{{#if BackMainTmp title}}
@@ -71,11 +75,12 @@
 		        <div class="col-md-12" style="margin-bottom: 20px;">
 			        {{#each DailyReportList}}
 				        <div class="col-md-4" style="border-right: 1px solid #dddddd;margin-top:20px;height: 80px;">
-				        	<p style="padding-bottom: 15px;text-align: center;">2018-06-23</p>
+				        	<p style="padding-bottom: 15px;text-align: center;">{{date}}</p>
 				        	<div class="col-xs-12">
-				        		<button data-value="0" class="BtnShoppingMoney btn btn-block btn-primary">統計</button>
+				        		<a href="{{pathFor route='post.dailyreportdetail' data=getPost query='array='}}{{array}}&date={{date}}&money={{Money}}" class="btn btn-block btn-primary">
+				        			<p style="color: #ffffff;">統計 ( {{Money}} )</p>
+				        		</a>
 				        	</div>
-				        	<input type="hidden" name="DailyReport0" value="4">
 				        </div>
 			        {{/each}}
 				</div>
@@ -83,6 +88,40 @@
 		    <script type="text/javascript">
         		H_window = $(window).height();
 				$("#DailyReportBody").css({'max-height': (H_window - 50) }).scrollTop(0);
+        	</script>
+	    {{/if}}
+	</template>
+
+<!-- 日報表詳細 -->
+	<template name="DailyReportDetail">
+		<div style="height: 50px;"></div>
+		{{#if Template.subscriptionsReady}}
+			<div class="col-md-12" style="height: 50px;border-bottom: 1px solid #dddddd;">
+				<div class="col-md-4" style="padding: 5px;text-align: left;" >
+					<div class="col-md-6">
+						<a type="button" class="btn btn-block btn-success" href="https://jnadtech.com/excel/1798.php?drjson={{DRJson}}">EXCEL</a>
+					</div>
+					<div class="col-md-6">
+						<button type="button" class="btn btn-block btn-primary">PDF</button>
+					</div>
+				</div>
+				<div class="col-md-4" style="padding: 12px 0px 0px 0px;text-align: center;" >
+					<p style="font-size: 30px;">{{date}}</p>
+				</div>
+				<div class="col-md-4" style="padding: 12px 0px 0px 0px;text-align: center;" >
+					<p style="font-size: 30px;">今日總額: {{money}} 元</p>
+				</div>
+			</div>
+			<div id="DailyReportDetailBody" class="col-md-12" style="overflow-y: scroll;">
+				{{#each DailyReportDetailList}}
+					<div class="col-md-3" style="padding: 10px;margin-bottom: 10px;text-align: center;">
+						<p>{{zh}}: {{count}}份</p>
+					</div>
+				{{/each}}
+		    </div>
+		    <script type="text/javascript">
+        		H_window = $(window).height();
+				$("#DailyReportDetailBody").css({'max-height': (H_window - 100) }).scrollTop(0);
         	</script>
 	    {{/if}}
 	</template>
@@ -112,7 +151,6 @@
         	</script>
 	    {{/if}}
 	</template>
-
 
 <!-- 結帳去 -->
 	<template name="GotFood">
@@ -265,7 +303,7 @@
 				        	<p style="padding-bottom: 15px;text-align: center;">{{name}}, {{date}}</p>
 				        	<p style="padding-bottom: 15px;text-align: center;">{{tokentype}}, {{email}}, {{phone}}, NT${{money}}</p>
 				        	<div class="col-xs-4">
-				        		<a href="{{pathFor route='post.vingdetail' data=getPost query='id='}}{{objid}}" class="btn btn-block btn-info">
+				        		<a href="{{pathFor route='post.notacceptedetail' data=getPost query='id='}}{{orderid}}&path=Ving" class="btn btn-block btn-info">
 				        			<p style="color: #ffffff;">修改</p>
 				        		</a>
 				        	</div>
@@ -320,7 +358,7 @@
 				        	<p style="padding-bottom: 15px;text-align: center;">{{name}}, {{date}}</p>
 				        	<p style="padding-bottom: 15px;text-align: center;">{{tokentype}}, {{email}}, {{phone}}, NT${{money}}</p>
 				        	<div class="col-xs-4">
-				        		<a href="{{pathFor route='post.NotAcceptedetail' data=getPost query='id='}}{{objid}}" class="btn btn-block btn-info">
+				        		<a href="{{pathFor route='post.notacceptedetail' data=getPost query='id='}}{{orderid}}&path=NotAccepted" class="btn btn-block btn-info">
 				        			<p style="color: #ffffff;">修改</p>
 				        		</a>
 				        		<!-- <button data-value="{{index}}" class="BtnMdyNotAccepted btn btn-block btn-info">修改</button> -->
@@ -350,7 +388,37 @@
 		<div style="height: 50px;"></div>
 		{{#if Template.subscriptionsReady}}
 			<div id="NotAccepteDetailBody" class="row" style="overflow-y: scroll;">
-		        
+				<div class="col-md-12">
+			        {{#each NotAccepteDetailList}}
+		        		<div class="col-md-4" style="height: 270px;margin-top: 20px;">
+						    <div class="card" style="height: auto;">
+						    	<div class="card-header">{{head}}</div>
+						        {{#if IFSingleOrDouble SingleOrDouble}}
+						            <div class="card-body" style="height: 152px;padding: 15px 0px 15px 20px;line-height: 25px;letter-spacing: 2px;">
+					                	<p class="card-text">{{catena}}</p>
+					                	<p class="card-text">{{name}}</p>
+					                    <p class="card-text">{{sauce}}</p>
+					                	<p class="card-text">{{money}} 元</p>
+						            </div>
+						    	{{else}}
+					        		<div class="card-body" style="height: 152px;padding: 15px 0px 15px 20px;line-height: 25px;letter-spacing: 2px;">
+					                    <p class="card-text">{{meal}}</p>
+					                    <p class="card-text">{{first}}</p>
+					                    <p class="card-text">{{second}}</p>
+					                    <p class="card-text">{{drink}}</p>
+					                    <p class="card-text">{{money}} 元</p>
+					                </div>
+						    	{{/if}}
+						    	<div class="card-footer">
+		                            <div class="col-12">
+		                                <button data-value="{{index}}" type="button" class="cartremove btn btn-block btn-warning">刪除</button>
+		                            </div>
+			                    </div>
+						    </div>
+						</div>
+						<input type="hidden" name="NotAccepteDetail{{index}}" value="{{GetObjid}}">
+					{{/each}}
+				</div>
 		    </div>
 		    <script type="text/javascript">
         		H_window = $(window).height();
@@ -525,8 +593,16 @@
 							<input type="hidden" name="InfoStatus" value="{{status}}">
 						</div>
 			        </div>
+			        <div class="col-md-12" style="padding: 10px 0px 10px 0px;">
+						<div class="col-md-7" style="padding: 0px;">
+							<p style="font-size: 25px;margin-top: 10px;">簡訊費: {{sms}}</p>
+						</div>
+						<div class="col-md-5" style="padding-right: 0px;">
+							<button style="font-size: 20px;" name="btnsms" class="btn btn-block btn-primary">查詢簡訊費</button>
+						</div>
+			        </div>
 			    {{/each}}
-			    <div class="col-md-12" style="padding: 10px;">
+			    <div class="col-md-12" style="padding: 0px;margin-top: 20px;">
 			    	<a target="_bank" href="https://jnadtech.com/1798/Service/AutoScript.php" class="btn btn-block btn-primary">重置時間</a>
 			    </div>
 		    </div>

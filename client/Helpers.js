@@ -7,6 +7,13 @@ import './main.html';
 
 var _UserID = "";
 Template.MainTmp.helpers({
+	BackDailyReportDetail(title){
+		switch(title){
+			case "日報表詳細":
+				return 1;
+			break;
+		};
+	},
 	BackGotFoodDetail(title){
 		switch(title){
 			case "結帳中":
@@ -71,6 +78,104 @@ Template.MainTmp.helpers({
 	},
 });
 
+// 日報表詳細
+	var rdjson = new ReactiveVar('');
+	Template.DailyReportDetail.helpers({
+		DailyReportDetailList(){
+			
+			const _array = (this.array).split(',');
+			let FoodTmpArray  = [];
+			let FoodSauceTmpArray  = [];
+			for(let i=0; i<(_array.length); i++){
+				const UO = Mongo_UserOrder.find({'_id': _array[i]}).fetch();
+				UO.forEach((UOElem, UOIndex)=>{
+					const foodlist = UOElem.foodlist;
+					foodlist.forEach((foodlistElem, foodlistIndex)=>{
+						if( (foodlistElem.type) == "single" ){
+							FoodTmpArray.push(foodlistElem.foodid);
+							const SingleSplit = (foodlistElem.foodsauceid).split(',');
+							SingleSplit.forEach((SingleSplitElem, SingleSplitIndex)=>{
+								FoodSauceTmpArray.push(SingleSplitElem);
+							});
+						}else{
+							const SDF = Mongo_ShopDoubleFood.find({
+											'_id': foodlistElem.df.objid
+										}).fetch();
+							SDF.forEach((SDFElem, SDFIndex)=>{
+								FoodTmpArray.push(SDFElem.Sigleid);
+								FoodSauceTmpArray.push(foodlistElem.df.sauceid);
+								
+								FoodTmpArray.push(foodlistElem.dv.dvobjid);
+								FoodSauceTmpArray.push(foodlistElem.dv.sauceid);
+								
+								FoodTmpArray.push(foodlistElem.dd.singlefoodid)
+							});
+							const st = foodlistElem.st;
+							st.forEach((stElem, stIndex)=>{
+								FoodSauceTmpArray.push(stElem.sauceid);
+							});
+						};
+					});
+				});
+			};
+
+			const FoodResult = FoodTmpArray.reduce(
+				(obj, item) => {
+			    	obj[item] = obj[item] ? obj[item] + 1 : 1;
+			    	return obj;
+				}, {}
+			);
+
+			const FoodSauceResult = FoodSauceTmpArray.reduce(
+				(obj, item) => {
+			    	obj[item] = obj[item] ? obj[item] + 1 : 1;
+			    	return obj;
+				}, {}
+			);
+
+			MeteorEach = [];
+
+			_.each(FoodResult, (key, value, list)=>{
+				const SSF = Mongo_ShopSingleFood.find({
+								'_id': value
+							}).fetch();
+				SSF.forEach((SSFElem, SSFIndex)=>{
+					MeteorEach.push({
+						zh: SSFElem.zh,
+						count: key
+					});
+				});
+			});
+
+			_.each(FoodSauceResult, (key, value, list)=>{
+				const SSF = Mongo_FoodSauce.find({
+								'_id': value
+							}).fetch();
+				SSF.forEach((SSFElem, SSFIndex)=>{
+					MeteorEach.push({
+						zh: SSFElem.zh,
+						count: key
+					});
+				});
+			});
+
+			MeteorEach.sort(function (a, b) {
+              return b.count - a.count;
+            });
+
+			rdjson.set(encodeURI(JSON.stringify(MeteorEach)));
+			return MeteorEach;
+		},
+		DRJson(){
+			return rdjson.get();
+		},
+		date(){
+			return this.date;
+		},
+		money(){
+			return this.money;
+		},
+	});
 
 // 城市.大學
 	Template.TempSchool.onRendered(function () {

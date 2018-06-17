@@ -10,26 +10,105 @@ import '/imports/MongoDBCollection.js'
 var H_window = "";
 var MeteorEach = [];
 
-// 日報表
-	Template.DailyReport.events({
-		'click .BtnDailyReport':(evt,tmp) => {
+// 解析記錄時間
+	function ResolveTime(_time){
+		let TmpArray = [];
+		const dt = new Date( (_time * 1000) );
+		TmpArray[0] = dt.getFullYear();
+		TmpArray[1] = (dt.getMonth() + 1);
+		TmpArray[2] = dt.getDate();
+		TmpArray[3] = dt.getHours();
+		TmpArray[4] = "0" + dt.getMinutes();
+		return TmpArray;
+	};
+
+
+	Template.DailyReportDetail.events({
+		'click [name=excel]':(evt,tmp)=>{
 			evt.preventDefault();
-			const _textContent = evt.target.textContent;
-			const objid = evt.currentTarget.dataset.value;
-			
+			const EXCEL = tmp.$('[name=drjson]').val();
+			const JsonExcel = JSON.parse(EXCEL);
+			HTTP.call('POST', 'https://jnadtech.com/excel/17981.php', 
+				(err, res)=>{
+					console.log(res);
+				}
+			);
+		    alert("匯出...");
 		},
 	});
 
+// 日報表
 	Template.DailyReport.helpers({
 		DailyReportList(){
 			MeteorEach = [];
+			const y = new Date().getFullYear();
+			const m = (new Date().getMonth()+1);
+			const d = new Date().getDate();
+			const _Date = (y+'/'+m+'/'+d);
+			const NowTimeStamp = Math.round(new Date(_Date).getTime()/1000.0);
+			const StartTime = 1528387200;
+			const MinusTime = 86400;
+			const CountTimeStamp = ( (NowTimeStamp - StartTime) / MinusTime );
 
-			for(let i=0;i<40;i++){
-				MeteorEach.push({
-					index:i
-				});
+			let TimestampTmpArray = [];
+			let TmpTimeStamp = NowTimeStamp;
+			TimestampTmpArray.push(NowTimeStamp);
+			for(let i=2; i<CountTimeStamp; i++){
+				let _time = (TmpTimeStamp - MinusTime);
+				TimestampTmpArray.push(_time);
+				TmpTimeStamp = _time;
 			};
 
+			TimestampTmpArray.push(StartTime);
+
+			let UOTmpArray = [];
+
+			for(let i=0;i<TimestampTmpArray.length;i++){
+				let TotalMoney = 0;
+				
+				const UO = Mongo_UserOrder.find({
+					timestamp:{
+						$gte: (parseInt(TimestampTmpArray[i])),
+						$lt: (parseInt(TimestampTmpArray[i]) + MinusTime)
+					}
+				},{'_id':1,'money':1}).fetch();
+				// 
+				const HubTime = ResolveTime(parseInt(TimestampTmpArray[i]));
+				let Retime  = HubTime[0] + '-' + HubTime[1] + '-' + HubTime[2];
+				
+				UO.forEach((UOElem, UOIndex)=>{
+					const UIF = Mongo_UserInfo.find({
+					    'order':{
+					        $elemMatch:{
+					            'user_order_id': UOElem._id,
+					            'type':1
+					        }
+					    }
+					},{'_id':1,'order.$':1}).fetch();
+					// 
+					UIF.forEach((UIFElem, UIFIndex)=>{
+						UOTmpArray.push(UOElem._id)
+					});
+				});
+
+				for(let i=0;i<UOTmpArray.length;i++){
+					const _UO = Mongo_UserOrder.find({
+								'_id': UOTmpArray[i]
+							}).fetch();
+					_UO.forEach((_UOElem, _UOIndex)=>{
+						TotalMoney += _UOElem.money;
+					});
+				};
+
+				MeteorEach.push({
+					index: i,
+					Money: TotalMoney,
+					date: Retime,
+					array: UOTmpArray.toString()
+				});
+
+				UOTmpArray = [];
+			};
 			return MeteorEach;
 		},
 	});
@@ -508,17 +587,6 @@ var MeteorEach = [];
 			);	
 		},
 	});
-	// 解析記錄時間
-	function ResolveTime(_time){
-		let TmpArray = [];
-		const dt = new Date( (_time * 1000) );
-		TmpArray[0] = dt.getFullYear();
-		TmpArray[1] = (dt.getMonth() + 1);
-		TmpArray[2] = dt.getDate();
-		TmpArray[3] = dt.getHours();
-		TmpArray[4] = "0" + dt.getMinutes();
-		return TmpArray;
-	};
 
 	Template.NotAccepted.helpers({
 		NotAcceptedList(){
@@ -578,6 +646,210 @@ var MeteorEach = [];
             });
 
 			return MeteorEach;
+		},
+	});
+
+// 尚未受理之修正
+	var NotAccepteMdy = new ReactiveVar(0);
+	var GetObjid = new ReactiveVar(0);
+	var NotAccepteMdyMail  = new ReactiveVar(0);
+	var NotAccepteMdyToken = new ReactiveVar(0);
+	var NotAccepteMdyPath = new ReactiveVar(0);
+	Template.NotAccepteDetail.helpers({
+		NotAccepteDetailList(){
+			MeteorEach = [];
+			const objid = this._id;
+			NotAccepteMdyPath.set(this._path);
+			let TotalMoney = 0;
+			let CartCount  = 0;
+			const UserOrder = Mongo_UserOrder.find({'_id': objid}).fetch();
+			UserOrder.forEach((UserOrderElem, UserOrderIndex)=>{
+				const _foodlist  = UserOrderElem.foodlist;
+				_foodlist.forEach((_foodlistElem, _foodlistIndex)=>{
+					CartCount++;
+					if(_foodlistElem.type == "single"){
+						const SSF = Mongo_ShopSingleFood.find({
+										'_id': _foodlistElem.foodid
+									}).fetch();
+
+						SSF.forEach(function(SSFelem,SSFindex){
+							const SSM = Mongo_ShopSingleMenu.find({
+											'_id': SSFelem.SingleMenu_id
+										}).fetch();
+
+							SSM.forEach(function(SSMelem,SSMindex){
+								const _foodsauceid = _foodlistElem.foodsauceid.split(',');
+								let _sauce = "";
+								_foodsauceid.forEach(function(FSidelem,FSidindex){
+									const FS = Mongo_FoodSauce.find({
+													'_id': FSidelem
+												}).fetch();
+
+									FS.forEach(function(FSelem,FSindex){
+										_sauce += FSelem.zh;
+										if(FSidindex < (_foodsauceid.length - 1)){
+											_sauce += ',';
+										};
+									});
+
+								});
+
+								MeteorEach.push({
+									SingleOrDouble: 1, // 1=單點 ,0=套餐
+									head: CartCount + '.' + _SingleOrDouble[0],
+									catena: SSMelem.zh + "系列",
+									name: _foodlistElem.foodname,
+									sauce: _sauce,
+									money: "NT$ " + SSFelem.money,
+									index: CartCount
+								});
+
+								TotalMoney += parseInt(SSFelem.money);
+							});
+						});
+					}else{
+						const _elem0_df = _foodlistElem.df; // 主餐
+						const _elem0_dv = _foodlistElem.dv; // 副餐
+						const _elem0_dd = _foodlistElem.dd; // 飲品 濃湯
+						const _elem0_st = _foodlistElem.st; // 原味 糖 冰塊
+
+						// 主食 主食甜品 價錢 
+						const First_SDF = Mongo_ShopDoubleFood.find({
+												'_id': _elem0_df.objid
+											}).fetch();
+												
+						First_SDF.forEach(function(FSDFelem,FSDFindex){
+							const First_SSF = Mongo_ShopSingleFood.find({
+												'_id': FSDFelem.Sigleid
+											}).fetch();
+
+							First_SSF.forEach(function(FSSFelem,FSSFindex){
+								const First_SSM = Mongo_ShopSingleMenu.find({
+											'_id': FSSFelem.SingleMenu_id
+										}).fetch();
+
+								First_SSM.forEach(function(FSSMelem,FSSMindex){
+									// 副餐
+									const Second_SSF = Mongo_ShopSingleFood.find({
+														'_id': _elem0_dv.dvobjid
+													}).fetch();
+
+									Second_SSF.forEach(function(SSSFelem,SSSFindex){
+										const Second_FS = Mongo_FoodSauce.find({
+														'_id': _elem0_dv.sauceid
+													}).fetch();
+
+										Second_FS.forEach(function(SFSelem,SFSindex){
+											// 飲品
+											const dirnkName = Mongo_ShopSingleFood.find({
+																'_id': _elem0_dd.singlefoodid
+															}).fetch();
+
+											dirnkName.forEach(function(DNelem,DNindex){
+												let TmpSauce = " (";
+												
+												_elem0_st.forEach(function(STelem,STindex){
+													const drink_sauce = Mongo_FoodSauce.find({
+																			'_id': STelem.sauceid
+																		}).fetch();
+
+													drink_sauce.forEach(function(Dselem,Dsindex){
+														TmpSauce += Dselem.zh;
+														if(STindex < (_elem0_st.length - 1)){
+															TmpSauce += ',';
+														};
+													});
+												});
+
+												TmpSauce += ')';
+
+												MeteorEach.push({
+													SingleOrDouble: 0, // 1=單點 ,0=套餐
+													head: CartCount + '.' + _SingleOrDouble[1],
+													meal: _elem0_df.title,
+													first: FSSFelem.zh + '('+ _elem0_df.sauce +')',
+													second: SSSFelem.zh + '('+ SFSelem.zh +')',
+													drink: DNelem.zh + TmpSauce,
+													money: "NT$ " + _elem0_df.money,
+													index: CartCount
+												});
+
+											});
+										});
+									});
+								});
+							});
+						});
+					}
+				});
+				const UserInfo = Mongo_UserInfo.find({'order': {
+					$elemMatch: {
+						'user_order_id': objid
+					}}
+				});
+				UserInfo.forEach((UserInfoElem, UserInfoIndex)=>{
+					NotAccepteMdyMail.set(UserInfoElem.user_school_mail_id);
+				// 	Identity.set(UserInfoElem.user_school_identity);
+				// 	Phone.set(UserInfoElem.import.phone);
+					NotAccepteMdyToken.set(UserInfoElem.import.token);
+				// 	let _date = ResolveTime(UserOrderElem.timestamp);
+				// 		_date = (_date[0] + '-' + _date[1] + '-' + _date[2] + ' ' + _date[3] + ':' + _date[4].substr(-2));
+				// 	Timestamp.set(_date);
+				});
+			});
+			GetObjid.set(objid);
+			return MeteorEach;
+		},
+		GetObjid(){
+			return GetObjid.get();
+		},
+		IFSingleOrDouble(open){
+			return open;
+		},
+	});
+
+	Template.NotAccepteDetail.events({
+		'click .cartremove':(evt,tmp)=>{
+			evt.preventDefault();
+			MeteorEach  = [];
+			const Index = evt.currentTarget.dataset.value;
+			const Mail  = NotAccepteMdyMail.get();
+			const Token = NotAccepteMdyToken.get();
+			const UserOrder = Mongo_UserOrder.find({
+								'_id': GetObjid.get()
+							}).fetch();
+			let StayMoney = 0;
+			UserOrder.forEach((UserOrderElem, UserOrderIndex)=>{
+				const _foodlist  = UserOrderElem.foodlist;
+				_foodlist.forEach((_foodlistElem, _foodlistIndex)=>{
+					if( ( _foodlistIndex != (parseInt(Index) - 1) ) ){
+						if( (_foodlistElem.type == "single") ){
+							const SSF = Mongo_ShopSingleFood.find({
+											'_id': _foodlistElem.foodid
+										}).fetch();
+							SSF.forEach((SSFElem, SSFIndex)=>{
+								StayMoney += parseInt(SSFElem.money);
+							});
+						}else{
+							StayMoney += parseInt(_foodlistElem.df.money);
+						};
+						MeteorEach.push(_foodlistElem);
+					};
+				});
+			});
+
+			Meteor.call('NotAccepteMdy', Token, GetObjid.get(), MeteorEach, StayMoney , 
+				(err,res)=>{
+					if(res){
+						alert("已修正" + Mail + "訂單");
+						if(NotAccepteMdyPath.get() == "Ving"){
+							Router.go('post.ving');
+						}else{
+							Router.go('post.notaccepted');
+						};
+					};
+				}
+			);
 		},
 	});
 
@@ -756,6 +1028,7 @@ var MeteorEach = [];
 
 
 // 商家資訊
+	var Sms = new ReactiveVar(0);
 	Template.Info.events({
 		'click [name=btnphone]':(evt,tmp)=>{
 			evt.preventDefault();
@@ -809,6 +1082,10 @@ var MeteorEach = [];
 				};
 			});
 		},
+		'click [name=btnsms]':(evt,tmp)=>{
+			evt.preventDefault();
+			Meteor.call('GetSms');
+		},
 	});
 	const btnclass = ['success','danger'];
 	Template.Info.helpers({
@@ -823,8 +1100,9 @@ var MeteorEach = [];
 					shopstatus: (_ShopElem.type!=0)?"開店":"閉店",
 					btnclass: btnclass[_ShopElem.type],
 					name: (_ShopElem.type==0)?"開店":"閉店",
-					status: _ShopElem.type
-				});	
+					status: _ShopElem.type,
+					sms: _ShopElem.sms
+				});
 			});
 			return MeteorEach;
 		},

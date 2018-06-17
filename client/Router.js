@@ -11,14 +11,39 @@ import './Helpers.js';
 			const obj = {
 				title: '日報表',
 			};
-			 
-			Meteor.subscribe('Shop');
+			Meteor.subscribe('UserOrder');
+			Meteor.subscribe('UserInfo');
 			return obj;
 		},
 		yieldRegions: {
 			'DailyReport': {to: 'plugin'},
 		},
 	});
+
+// 日報表
+	Router.route('/DailyReportDetail', {
+		name: 'post.dailyreportdetail',
+		layoutTemplate: 'MainTmp',
+		data: function () {
+			const obj = {
+				title: '日報表詳細',
+				array: this.params.query.array,
+				date: this.params.query.date,
+				money: this.params.query.money
+			};
+			Meteor.subscribe('UserInfo');
+			Meteor.subscribe('UserOrder');
+			Meteor.subscribe('ShopSingleFood');
+			Meteor.subscribe('ShopSingleMenu');
+			Meteor.subscribe('ShopDoubleFood');
+			Meteor.subscribe('FoodSauce');
+			return obj;
+		},
+		yieldRegions: {
+			'DailyReportDetail': {to: 'plugin'},
+		},
+	});
+
 
 // 購物金
 	Router.route('/ShoppingMoney', {
@@ -30,7 +55,7 @@ import './Helpers.js';
 			};
 			 
 			Meteor.subscribe('UserInfo');
-			
+
 			return obj;
 		},
 		yieldRegions: {
@@ -58,15 +83,19 @@ import './Helpers.js';
 
 // 尚未受理之修正訂單
 	Router.route('/NotAccepteDetail', {
-		name: 'post.NotAcceptedetail',
+		name: 'post.notacceptedetail',
 		layoutTemplate: 'MainTmp',
 		data: function () {
 			const obj = {
 				title: '尚未受理之修正訂單',
-				_id: this.params.query.id
+				_id: this.params.query.id,
+				_path: this.params.query.path
 			};
+			Meteor.subscribe('UserInfo');
 			Meteor.subscribe('UserOrder');
+			Meteor.subscribe('ShopSingleMenu');
 			Meteor.subscribe('ShopSingleFood');
+			Meteor.subscribe('ShopDoubleFood');
 			Meteor.subscribe('FoodSauce');
 			return obj;
 		},
@@ -74,8 +103,6 @@ import './Helpers.js';
 			'NotAccepteDetail': {to: 'plugin'},
 		},
 	});
-
-
 
 // 烹飪中
 	Router.route('/Ving', {

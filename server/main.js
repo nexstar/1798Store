@@ -5,9 +5,56 @@ import { check } from 'meteor/check'
 import '/imports/MongoDBCollection.js';
 
 Meteor.startup(function () {
-
+	var mqtt = require('mqtt');
+    var PORT = "1919";
+    var userName = 'jnadtechmqtt';
+    var userPasswd = 's123';
+    var options = {
+        port: PORT,
+        username: userName,
+        password: userPasswd,
+    }
 	// client call Server
     Meteor.methods({
+    	// Sms
+    	GetSms:()=>{
+    		HTTP.call('GET', 'http://api.every8d.com/API21/HTTP/getCredit.ashx', {
+		    	params: { 
+		    		UID: "0972153032",
+		    		PWD: "5a33",
+		    	}
+		    }, (err, res)=>{
+		    	Mongo_Shop.update({'_id':'Dbn45YndpH4w3JhNL'},{ 
+				   	$set: {
+				   		"sms" : res.content
+				    }
+				});
+		    });
+		    return 1;
+    	},
+    	// 修改尚未受理Order
+    	NotAccepteMdy:(_token, orderid, _hub, _money)=>{
+    		Mongo_UserOrder.update({ '_id': orderid },{
+	            $set: {
+	              foodlist: _hub,
+	              money: _money
+	            }
+	        });
+	        const _title = "卡利亞里";
+			const _body  = "您已經訂單已修正";
+			if(_token !== ""){
+				const result = HTTP.call('GET', 'http://203.67.248.85:9484/Ving', {
+			    	params: { 
+			    		title: _title,
+			    		body: _body,
+			    		token: _token,
+			    		route: 'Notifi',
+			    		alertsay: _body
+			    	}
+			    });
+			};
+    		return 1;
+    	},
     	// 給予購物金
     	UpShoppingMoney:(objid, _token)=>{
     		Mongo_UserInfo.update({
@@ -114,6 +161,12 @@ Meteor.startup(function () {
 			    	}
 			    });
 			};
+
+			// const client = mqtt.connect('mqtt://jnadtechmqtt.com', options);
+			// client.on('connect', function () {
+			//   	client.publish('Im1798', objid);
+			//   	console.log('MQTT');
+			// });
 			return 1;
     	},
     	// 更新食物份量
